@@ -1,0 +1,25 @@
+# venv
+.venv/
+venv/
+
+# generated artefacts (rerun model.py / model_latent.py / plot_*.py / ppc.py to regenerate)
+idata.nc
+idata_latent.nc
+transition_matrix.csv
+transition_matrix.meta.json
+transition_matrix_latent.csv
+transition_matrix_latent.meta.json
+ppc.csv
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# editors
+.vscode/
+.idea/
+.DS_Store
+
+# pytensor compile cache
+.pytensor/
