@@ -1,6 +1,6 @@
 # Context
 
-I recently [posted a visualisation](https://bsky.app/profile/oskanberg.bsky.social/post/3mljoawmkcs2n) from some exploratory modelling I tried in order to understand the effect of turnout on voter flows in the 2026 English local election. I got some interest on that post, so this document aims to explain the modelling in more detail. Hopefully there is enough high level information for a casual reader, and enough detail for those who want to dig deeper. 
+I recently [posted a visualisation](https://bsky.app/profile/oskanberg.bsky.social/post/3mljoawmkcs2n) from some exploratory modelling - on the effect of turnout on shifts in vote share - that I had attempted. I got some interest on that post, so this document aims to explain the modelling in more detail. Hopefully there is enough high level information for a casual reader, and enough detail for those who want to dig deeper. 
 
 The data and code are available [here](https://github.com/oskanberg/2026-voter-flows).
 
@@ -156,9 +156,9 @@ In aggregate, it appears to fit the data fairly well, but Reform 2026 column is 
 
 ## Is DNV → Reform really 14%?
 
-Reform appears to be disproportionately the beneficiary of mobilised non-voters. This baseline model estimates ~14% of 2024 abstainers turning out for Reform in 2026. This seems unrealistic, and combined with the underperformance in the PPC, should be treated with caution.
+Reform appears to be disproportionately the beneficiary of mobilised non-voters. This baseline model estimates ~14% of 2024 abstainers turning out for Reform in 2026. This seems unrealistic, and combined with the model underperformance for Reform in the fitness checks above, it is particularly suspicious.
 
-Reform's 2024 candidate-availability gap creates a plausible explanation. Reform stood in only 147 of the 754 wards in 2024 but in essentially all 754 in 2026. Voters who *would have* chosen Reform in 2024 had no Reform candidate, so they appear in the data as something else.
+One confounding factor that might cause this is the availability of Reform candidates. Reform stood in only 147 of the 754 wards in 2024 but in essentially all 754 in 2026. Voters who *would have* chosen Reform in 2024 had no Reform candidate, so they appear in the data as something else. The model cannot adapt to this effect, since it implicitly assumes that all candidates are available in both years.
 
 To explore this 'candidate availability' effect, I split the 754 wards into two subsets: wards where Reform stood in 2024 (n=147) and wards where they didn't (n=607). I then refit the model separately on each subset:
 
@@ -172,7 +172,10 @@ To explore this 'candidate availability' effect, I split the 754 wards into two 
 
 The shift from DNV to Reform barely moves between the subsets (~1pp). Interestingly, flows from Con to Reform vary by nearly an order of magnitude.
 
-At face value, this suggests that the effect of new Reform candidates is primarily to attract voters from Con, not from DNV. However, I am more inclined to read this as: this model (with its homogeneous $T$) is struggling to disentangle the effects of candidate availability and DNV mobilisation: there is likely leakage between Con -> Ref and DNV -> Ref. This is also consistent with the poor Reform fit above: the candidate availability issue makes the 2024 Reform cohort a poor aggregate signal for predicting 2026 Reform share at the ward level. It seems okay at determining the *average* rate of mobilisation across the pool, but not at predicting differences between wards in the Reform vote.
+At face value, this suggests that:
+- Conservatives lost significantly more to Reform in seats that had previously been uncontested.
+- A similar proportion of DNVs turned out for Reform, regardless of whether there was previously a candidate in that seat.
+
 
 ## A model extension: explicitly modelling Reform's missing 2024 cohort
 
@@ -182,13 +185,13 @@ In the 607 wards where Reform didn't stand in 2024, the input vector $x_w$ has z
 
 $$x_w[\text{Ref}] = 0$$
 
-So the homogeneous $T$ has no way to predict the 2026 Reform vote in those wards from the 2024 Reform cohort. It has to 'spread' the implied vote flows to Reform across other 2024 categories, and do so that minimises the error across all wards - regardless of whether it had a Reform candidate stand in 2024.
+So the model has no way to predict the 2026 Reform vote in those wards from the 2024 Reform cohort. It has to 'spread' the implied vote flows to Reform across other 2024 categories, and do so in a way that minimises the error across all wards - regardless of whether it had a Reform candidate stand in 2024.
 
-The data suggest that 'would-be' Reform voters did *something else* in 2024, that looks meaningfully different from wards where a candidate did stand. Some stayed home, some voted for a different party, but in different proportions. Then in 2026, when Reform actually stood, they may have changed their behaviour.
+The data suggest that 'would-be' Reform voters did *something else* in 2024, that looks meaningfully different from wards where a candidate did stand, but the model is not able to learn the distinction.
 
 One improvement I tried is to give the model two extra sets of parameters to learn:
 
-1. How many of these "hidden Reform" voters were there in each of the wards without 2024 Reform candidates. Call that share $λ_w$. i.e. what fraction of the electorate in this ward would have voted Reform in 2024 if they'd had the chance? Weak prior: HalfNormal(σ=0.05)
+1. How many of these "hidden Reform" voters were there in each of the wards without 2024 Reform candidates. Call that share $λ_w$. i.e. what fraction of the electorate in this ward would have voted Reform in 2024 if they'd had the chance? This prior was modeled as a HalfNormal(σ=0.05).
 2. Where those voters showed up in the observed 2024 data. For simplicity, this is modelled as a uniform distribution $σ$ over the 6 non-Reform categories (embedded as a 7-vector with zero in the Reform slot for the equation below) that represents a single shared answer across all wards without Reform candidates. Prior: uniform Dirichlet(1,...,1).
 
 The new model is then exactly the same as the baseline, except that we replace $x_w$ with $x_w^{*}$:
@@ -207,7 +210,7 @@ where $e_{\text{Ref}}$ is the unit vector pointing at the Reform slot. $λ_w = 0
 
 This result is more explicitly a model of voting _intent_, and so is less literally accurate to absolute numbers. But it gives a more realistic intention-to-intention flow, boosting the Reform 2024 _implied_ share.
 
-Comparison with the earlier model: posterior means with 80% credible intervals in brackets:
+Comparison with the earlier model (posterior means with 80% credible intervals in brackets):
 
 
 | Cell          | Baseline (model.py)       | Latent (model_latent.py)  | Δ (means) |
