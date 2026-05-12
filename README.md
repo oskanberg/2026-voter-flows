@@ -156,9 +156,13 @@ In aggregate, it appears to fit the data fairly well, but Reform 2026 column is 
 
 ## Is DNV → Reform really 14%?
 
-Reform appears to be disproportionately the beneficiary of mobilised non-voters. This baseline model estimates ~14% of 2024 abstainers turning out for Reform in 2026. This seems unrealistic, and combined with the model underperformance for Reform in the fitness checks above, it is particularly suspicious.
+Reform appears to be disproportionately the beneficiary of mobilised non-voters. This baseline model estimates ~14% of 2024 abstainers turning out for Reform in 2026. This seems suspicious, especially combined with the model underperformance for Reform in the fitness checks above.
 
-One confounding factor that might cause this is the availability of Reform candidates. Reform stood in only 147 of the 754 wards in 2024 but in essentially all 754 in 2026. Voters who *would have* chosen Reform in 2024 had no Reform candidate, so they appear in the data as something else. The model cannot adapt to this effect, since it implicitly assumes that all candidates are available in both years.
+I suspect that the model is under-predicting gross flows away from parties in general, and as a result over-predicts Reform's share of 2024 DNVers to explain their performance.
+
+That said, I did find [BESIP results](https://politicscentre.nuffield.ox.ac.uk/news-and-events/news/can-labour-take-reform-uks-voters-why-labours-electoral-challenges-are-being-misunderstood/) that found, ~12 months after the 2024 GE, 17.5% of 2024 non-voters reported Reform as their party of choice.
+
+One confounding factor that might cause the poor model accuracy for Reform is the availability of Reform candidates. Reform stood in only 147 of the 754 wards in 2024 but in essentially all 754 in 2026. Voters who *would have* chosen Reform in 2024 had no Reform candidate, so they appear in the data as something else. The model cannot adapt to this effect, since it implicitly assumes that all candidates are available in both years.
 
 To explore this 'candidate availability' effect, I split the 754 wards into two subsets: wards where Reform stood in 2024 (n=147) and wards where they didn't (n=607). I then refit the model separately on each subset:
 
@@ -172,7 +176,7 @@ To explore this 'candidate availability' effect, I split the 754 wards into two 
 
 The shift from DNV to Reform barely moves between the subsets (~1pp). Interestingly, flows from Con to Reform vary by nearly an order of magnitude.
 
-At face value, this suggests that:
+At face value (assuming it is not just a model artifact) this suggests that:
 - Conservatives lost significantly more to Reform in seats that had previously been uncontested.
 - A similar proportion of DNVs turned out for Reform, regardless of whether there was previously a candidate in that seat.
 
