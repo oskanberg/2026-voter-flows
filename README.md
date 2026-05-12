@@ -269,3 +269,14 @@ We should make no firm conclusions from an analysis of aggregate data, especiall
 - There was a significant mobilisation of non-voters to Reform
 - This flow of voters was one of (if not the) largest single aggregate vote-share movements in the election
 - It is plausible that Labour lost the vast majority of their vote share to Green, and relatively little directly to Reform
+
+
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']],
+    displayMath: [['$$', '$$'], ['\\[', '\\]']]
+  }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
