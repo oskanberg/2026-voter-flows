@@ -280,3 +280,30 @@ MathJax = {
 };
 </script>
 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const types = {
+    NOTE:      { color: '#0969da', label: 'Note' },
+    TIP:       { color: '#1a7f37', label: 'Tip' },
+    IMPORTANT: { color: '#8250df', label: 'Important' },
+    WARNING:   { color: '#9a6700', label: 'Warning' },
+    CAUTION:   { color: '#d1242f', label: 'Caution' }
+  };
+  document.querySelectorAll('blockquote').forEach(bq => {
+    const first = bq.firstElementChild;
+    if (!first || first.tagName !== 'P') return;
+    const m = first.innerHTML.match(/^\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*(<br\s*\/?>)?\s*/);
+    if (!m) return;
+    const t = types[m[1]];
+    first.innerHTML = first.innerHTML.slice(m[0].length);
+    bq.style.borderLeft = `4px solid ${t.color}`;
+    bq.style.padding = '0.5em 1em';
+    bq.style.background = t.color + '10';
+    const title = document.createElement('p');
+    title.style.cssText = `color: ${t.color}; font-weight: 600; margin: 0 0 0.25em 0;`;
+    title.textContent = t.label;
+    bq.insertBefore(title, first);
+    if (!first.textContent.trim()) first.remove();
+  });
+});
+</script>
