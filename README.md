@@ -164,7 +164,19 @@ That said, I did find [BESIP results](https://politicscentre.nuffield.ox.ac.uk/n
 
 One confounding factor that might cause the poor model accuracy for Reform is the availability of Reform candidates. Reform stood in only 147 of the 754 wards in 2024 but in essentially all 754 in 2026. Voters who *would have* chosen Reform in 2024 had no Reform candidate, so they appear in the data as something else. The model cannot adapt to this effect, since it implicitly assumes that all candidates are available in both years.
 
-To explore this 'candidate availability' effect, I split the 754 wards into two subsets: wards where Reform stood in 2024 (n=147) and wards where they didn't (n=607). I then refit the model separately on each subset:
+The average turnout growth in the analysed wards was +9.2pp, and this holds across wards with and without Reform 2024 candidates. However, stratifying turnout numbers by 2026 Reform share shows a significant difference:
+
+| Reform-2026 quartile | Candidate 2024 — Δturnout | No candidate 2024 — Δturnout |
+|---------------------|----------------------:|--------------------------:|
+| Q1 (low)            |                +7.2pp |                   +5.9pp |
+| Q2                  |                +9.4pp |                   +8.6pp |
+| Q3                  |                +8.8pp |                   +9.9pp |
+| Q4 (high)           |               +10.9pp |                  +12.6pp |
+| **Q4 − Q1 gap**     |      **+3.7pp turnout** |         **+6.7pp turnout** |
+
+This suggests that Reform candidates are a meaningful driver of new turnout in a subset of wards, even if not on average.
+
+To explore this 'candidate availability' effect further, I split the 754 wards into two subsets: wards where Reform stood in 2024 (n=147) and wards where they didn't (n=607). I then refit the model separately on each subset:
 
 
 | Cell            | Candidate available 2024 (n=147) | No candidate 2024 (n=607) |
@@ -180,6 +192,8 @@ At face value (assuming it is not just a model artifact) this suggests that:
 - Conservatives lost significantly more to Reform in seats that had previously been uncontested.
 - A similar proportion of DNVs turned out for Reform, regardless of whether there was previously a candidate in that seat.
 
+However, it is clear from the turnout data that the candidate-availability effect is not consistent across wards. The next section explores a model extension that attempts to account for this.
+
 
 ## A model extension: explicitly modelling Reform's missing 2024 cohort
 
@@ -191,9 +205,9 @@ $$x_w[\text{Ref}] = 0$$
 
 So the model has no way to predict the 2026 Reform vote in those wards from the 2024 Reform cohort. It has to 'spread' the implied vote flows to Reform across other 2024 categories, and do so in a way that minimises the error across all wards - regardless of whether it had a Reform candidate stand in 2024.
 
-The data suggest that 'would-be' Reform voters did *something else* in 2024, that looks meaningfully different from wards where a candidate did stand, but the model is not able to learn the distinction.
+The data suggest that 'would-be' Reform voters did *something else* in 2024, that looks meaningfully different from wards where a candidate did stand, but the model is not able to learn the distinction. In addition, it is clear that the effect of this 'would-be' Reform cohort is not consistent across wards.
 
-One improvement I tried is to give the model two extra sets of parameters to learn:
+To account for this, I created a second model with two extra sets of parameters to learn:
 
 1. How many of these "hidden Reform" voters were there in each of the wards without 2024 Reform candidates. Call that share $λ_w$. i.e. what fraction of the electorate in this ward would have voted Reform in 2024 if they'd had the chance? This prior was modeled as a HalfNormal(σ=0.05).
 2. Where those voters showed up in the observed 2024 data. For simplicity, this is modelled as a uniform distribution $σ$ over the 6 non-Reform categories (embedded as a 7-vector with zero in the Reform slot for the equation below) that represents a single shared answer across all wards without Reform candidates. Prior: uniform Dirichlet(1,...,1).
@@ -212,12 +226,12 @@ where $e_{\text{Ref}}$ is the unit vector pointing at the Reform slot. $λ_w = 0
 
 ![Voter transitions under the latent-Reform model](figures/sankey_full_latent.png)
 
-This result is more explicitly a model of voting _intent_, and so is less literally accurate to absolute numbers. But it gives a more realistic intention-to-intention flow, boosting the Reform 2024 _implied_ share.
+This result is more explicitly a model of voting _intent_, and so is less literally accurate to absolute numbers. But it gives a more realistic intention-to-intention flow, boosting the Reform 2024 _implied_ share. DNV -> Ref at ~11% is still a sriking result, but seems more plausible than the ~14% in the baseline model.
 
 Comparison with the earlier model (posterior means with 80% credible intervals in brackets):
 
 
-| Cell          | Baseline (model.py)       | Latent (model_latent.py)  | Δ (means) |
+| Cell          | Baseline                  | Latent (new)              | Δ (means) |
 | ------------- | ------------------------- | ------------------------- | --------- |
 | Lab → Lab     | 65% [63, 66]              | 65% [64, 66]              | 0         |
 | Lab → Grn     | 21% [19, 24]              | 22% [20, 24]              | +1        |
@@ -228,8 +242,8 @@ Comparison with the earlier model (posterior means with 80% credible intervals i
 | **DNV → Ref** | **14% [14, 14]**          | **11% [10, 11]**          | **-3**    |
 | DNV → DNV     | 84% [83, 84]              | 87% [87, 88]              | +3        |
 
+As well as the more reasonable DNV -> Ref result, this also improves the plausibility of the Ref -> Ref flow (now capturing those 'would be' equivalent voters), which at ~75% previously did not pass the smell test. It also downweights the Con -> Ref flow, since it can effectively reassign that vote share change to the 'would be' 2024 Reform voters.
 
-DNV -> Ref drops 3pp, Con -> Ref drops 4pp, Ref -> Ref jumps 17pp. In reality this share is small in the absolute numbers, but including the inferred 'would-be' Reform voters increases the implied share. 
 
 ### Implied 'Latent Reform' behaviour
 
