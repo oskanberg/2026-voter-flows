@@ -154,7 +154,7 @@ with open(HERE / "transition_matrix.meta.json") as f:
 fig = build_sankey(
     T_main,
     x_mean,
-    title="Voter flows, UK local elections 2024 → 2026",
+    title="Voter flows, English local elections 2024 → 2026",
     subtitle="",
     footer=(
         f"Bayes RxC model · n={n_wards} wards · "
